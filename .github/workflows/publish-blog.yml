@@ -1,35 +1,45 @@
-name: Publish Blog
+name: Deploy mxsm website to GitHub
 
 on:
-  push: 
-    tags:
-      - v* # 这里表示只有新增tag才会触发自动化脚本执行
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  gh-release:
-    if: github.event_name != 'pull_request'
+  test-deploy:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
+          node-version: 18
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Test build website
+        run: npm run build
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
       - uses: webfactory/ssh-agent@v0.5.0
         with:
-          ssh-private-key: ${{ secrets.GH_PAGES_DEPLOY }}
-      - name: Release to GitHub Pages
+          ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+      - name: Deploy to GitHub Pages
         env:
           USE_SSH: true
-          GIT_USER: git
-          DEPLOYMENT_BRANCH: main
+          DEPLOYMENT_BRANCH: gh-pages
         run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "gh-actions"
-          if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
+          git config --global user.email "ljbmxsm@gmail.com"
+          git config --global user.name "mxsm"
+          npm update --legacy-peer-deps
+          npm run clear
+          npm run build
           npm run deploy
