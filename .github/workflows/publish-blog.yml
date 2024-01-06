@@ -1,10 +1,10 @@
 name: Deploy diadestiny website to GitHub
 
 on:
-  pull_request:
-    branches: [main]
+  # pull_request:
+  #   branches: [main]
   push:
-    branches: [gh-pages]
+    branches: [main]
 
 jobs:
   test-deploy:
