@@ -1,4 +1,4 @@
-name: Deploy mxsm website to GitHub
+name: Deploy diadestiny website to GitHub
 
 on:
   pull_request:
